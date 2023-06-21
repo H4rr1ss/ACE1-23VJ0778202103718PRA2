@@ -7,16 +7,17 @@ include macros.asm
 
 ; PILA
 .data
+
 ;; ------------------------------------- VARIABLES -------------------------------------
 ; MENSAJES INICIALES
 MensajeInicial              db  " Universidad de San Carlos de Guatemala", 0dh, 0ah," Facultad de Ingenieria", 0dh, 0ah," Escuela de Vacaciones ", 0dh, 0ah," Arquitectura de Compiladores y ensabladores 1", 0dh, 0ah," Seccion N", 0a, 0dh, 0ah," Harry Aaron Gomez Sanic", 0dh, 0ah," 202103718", 0a, "$"
-
+;
 ; SERPARADOR
 separador                   db  "----------------------------------------------", 0a, "$"
 separador_sub               db  "     ==============", 0a, "$"
 separador_comun             db  "----------------->", 0a, "$"
 nueva_lin                   db  0a, "$" 
-
+;
 ; MENU
 productos                   db  "(P)roductoss",0a,"$"
     mostrar_produ           db  "(M)ostrar productos",0a,"$"
@@ -27,36 +28,38 @@ productos                   db  "(P)roductoss",0a,"$"
         prompt_unidades     db  "Unidades: ", "$"
     editar_produ            db  "(E)ditar producto",0a,"$"
     borrar_produ            db  "(B)orrar producto",0a,"$"
-
+;
 ventas                      db  "(V)entas",0a,"$"
-
+;
 herramientas                db  "(H)erramientas",0a,"$"
-
+;
 prompt                      db  "Elija una opcion:",0a,"$"
 temp                        db  00, "$"; Cadena temporal
-
+;
 ; IDENTIFICADORES DE CADA MENÚ(encabezado)
 titulo_producto             db  "     | PRODUCTOS  |",0a,"$"
 titulo_ventas               db  "     |   VENTAS   |",0a,"$"
 titulo_herras               db  "     |HERRAMIENTAS|",0a,"$"
-
-; ETIQUETAS DE INGRESO DE DATOS
+;
+; ETIQUETA DE INGRESO DE DATOS
 buffer_entrada              db  20, 00
                             db  20 dup (0)  ; dup = 5 copias del byte 0 -> 0,0,0,0,0 
-
+;
 ; "ESTRUCTURA PRODUCTO"
 cod_prod                    db  05 dup (0)
 cod_desc                    db  21 dup (0)
 cod_prec                    db  03 dup (0)
 cod_unid                    db  03 dup (0)
-
+;
 ; ARCHIVOS----->
 ; PRODUCTOS
 arch_productos              db  "PROD.BIN",00   ; CADENA ASCIZ
 handle_productos            dw  0000 
 ;---------------------------------------------------------------------------------------
+
 .code
 .startup
+
 ; CODIGO 
 inicio:
     ; PRINT MENSAJE INICIAL
@@ -71,13 +74,13 @@ menu_principal:
     mPrint ventas
     mPrint herramientas
     mPrint nueva_lin
-
+    ;
     ; OPCION A ELEGIR POR EL USUARIO[leer 1 caracter]
     mPrint prompt
     mov ah, 08              ; SE TIENE EN AL EL CARACTER QUE SE INGRESE
     int 21                  ; AL = CARACTER LEIDO
     mPrint separador_comun
-
+    ;
     ; COMPARACION USUARIO-OPCIONES_MENÚ
     cmp al, 70              ; p MINUS
     je menu_productos
@@ -86,6 +89,7 @@ menu_principal:
     cmp al, 68              ; h MINUS
     je menu_herramientas
     jmp menu_principal
+
 ; MENÚS DE CADA OPCIÓN
 ;--------------------------------------------------------------------------
 menu_productos:
@@ -95,20 +99,20 @@ menu_productos:
     mPrint mostrar_produ
     mPrint borrar_produ
     mPrint nueva_lin
-
+    ;
     mPrint prompt
     mov ah, 08              ; SE TIENE EN AL EL CARACTER QUE SE INGRESE
     int 21                  ; AL = CARACTER LEIDO
     mPrint separador_comun
-
+    ;
     ; COMPARACION USUARIO-OPCIONES_MENÚ
-    cmp al, 69              ; i MINUS
+    cmp al, 69              ; i MINUS -> insertar
     je ingresar_producto_archivo
-    cmp al, 65              ; e MINU
-    je mostrar
-    cmp al, 6d              ; m MINUS
+    cmp al, 65              ; e MINU  -> editar
+    je menu_productos
+    cmp al, 6d              ; m MINUS -> mostrar
     je mostrar_productos_archivo
-    cmp al, 62              ; b MINUS
+    cmp al, 62              ; b MINUS -> borrar
     je menu_productos
     jmp menu_productos
 
@@ -123,7 +127,7 @@ ingresar_producto_archivo:
         mPrint prompt_codigo
         getData buffer_entrada
         mPrint nueva_lin
-
+        ;
         ; VERIFICAR QUE EL TAMAÑO DEL CODIGO NO SEA MAYOR A 4
         mov di, offset buffer_entrada
         inc di
@@ -145,7 +149,8 @@ ingresar_producto_archivo:
         mov ch, 00
         mov cl, [di]
         inc di          ; ME POSICIONO EN EL CONTENIDO DEL BUFFER
-    copiar_codigo:  mov al, [di]
+    copiar_codigo:
+        mov al, [di]
         mov [si], al
         inc si
         inc di
@@ -179,7 +184,8 @@ ingresar_producto_archivo:
         mov ch, 00
         mov cl, [di]
         inc di          ; ME POSICIONO EN EL CONTENIDO DEL BUFFER
-    copiar_descripcion:  mov al, [di]
+    copiar_descripcion:  
+        mov al, [di]
         mov [si], al
         inc si
         inc di
@@ -213,7 +219,8 @@ ingresar_producto_archivo:
         mov ch, 00
         mov cl, [di]
         inc di          ; ME POSICIONO EN EL CONTENIDO DEL BUFFER
-    copiar_precio:  mov al, [di]
+    copiar_precio:  
+        mov al, [di]
         mov [si], al
         inc si  
         inc di
@@ -247,7 +254,8 @@ ingresar_producto_archivo:
         mov ch, 00
         mov cl, [di]
         inc di          ; ME POSICIONO EN EL CONTENIDO DEL BUFFER
-    copiar_unidades:  mov al, [di]
+    copiar_unidades:  
+        mov al, [di]
         mov [si], al
         inc si  
         inc di
@@ -264,11 +272,13 @@ ingresar_producto_archivo:
         jc  crear_archivo_productos
         ; SI ABRE ESCRIBIMOS
         jmp guardar_handle_productos
+        ;
     crear_archivo_productos:
         mov cx, 0000
         mov dx, offset arch_productos
-        mov ah, 3C
+        mov ah, 3c
         int 21                  ; ARCHIVO ABIERTO
+        ;
     guardar_handle_productos:
         ; GUARDAMOS HANDLE
 		mov [handle_productos], AX
@@ -288,15 +298,34 @@ ingresar_producto_archivo:
 		; CERRAR EL ARCHIVO
 		mov AH, 3e
 		int 21
-		;
-		jmp menu_productos
+	jmp menu_productos
 
 mostrar_productos_archivo:
-        
+        ; ABRIR EL ARCHIVO
+        mPrint nueva_lin
+        mov AL, 02
+		mov AH, 3d
+		mov DX, offset arch_productos
+		int 21
+        ; GUARDAMOS HANDLE
+		mov [handle_productos], AX
+        ; SE COMIENZA A LEERLO
+    ciclo_mostrar:    
+        mov bx, [handle_productos]
+        mov cx, 2c          ; LEEMOS 45 BYTES    
+        mov dx, offset cod_prod
+        mov ah, 3f
+        int 21           
+        ; ¿CUANTOS BYTES LEÍMOS?
+        ; SI SE LEYERON 0 BYTES ENTONCES SE TERMINÓ EL ARCHIVO
+        cmp ax, 00   
+        je fin_mostrar      ; SI EL CARRY ESTA SETEADO SE VA AL MENU PRODUCTOS
+        ; PRODUCTO EN ESTRUCTURA
+        call imprimir_estructura
+        jmp ciclo_mostrar
         ;
+    fin_mostrar:
         jmp menu_productos
-
-    jmp fin
 
 ; --------------------------------------------------------------------------
 
@@ -317,7 +346,25 @@ menu_herramientas:
     jmp fin
 
 ; --------------------------------------------------------------------------
+;;;;;;;;; SUBRUTINAS ;;;;;;;;;
+; ENTRADAS:
+; SALIDAS:
+imprimir_estructura:
+    mov di, offset cod_prod
+   ;
+    ciclo_poner_dolar_1:
+        mov al, [di]
+        cmp al, 00
+        je poner_dolar_1
+        inc di
+        jmp ciclo_poner_dolar_1
+    poner_dolar_1:
+        mov al, 24      ; $
+        mov [di], al
+        mPrint cod_prod
+        mPrint nueva_lin
+        ret
 fin:
-
+;
 .exit
 end
