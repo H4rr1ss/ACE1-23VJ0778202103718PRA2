@@ -1,2 +1,16 @@
-# ACE1-23VJ0778202103718PRA2
-Que el de arriba me ayude para esto.
+#     PRACTICA 2
+
+___
+
+## Universidad San Carlos de Guatemala
+## Facultad de Ingenieria
+
+<br>
+
+* ARQUITECTURA DE COMPUTADORES Y ENSAMBLADORES.
+* Vacaciones Primer Semestre 2023.
+* Harry Aaron Gómez Sanic
+* 202103718
+
+<br>
+
