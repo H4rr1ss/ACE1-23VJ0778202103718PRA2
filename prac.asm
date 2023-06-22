@@ -17,8 +17,10 @@ separador                   db  "----------------------------------------------"
 separador_sub               db  "     ==============", 0a, "$"
 separador_comun             db  "----------------->", 0a, "$"
 nueva_lin                   db  0a, "$" 
+llave_fin                   db  "fin", "$"
 ;
-; MENU
+;           MENU    ------>
+; PRODUCTOS
 productos                   db  "(P)roductoss",0a,"$"
     mostrar_produ           db  "(M)ostrar productos",0a,"$"
     ingresar_produ          db  "(I)ngresar producto",0a,"$"
@@ -28,8 +30,13 @@ productos                   db  "(P)roductoss",0a,"$"
         prompt_unidades     db  "Unidades: ", "$"
     editar_produ            db  "(E)ditar producto",0a,"$"
     borrar_produ            db  "(B)orrar producto",0a,"$"
-;
+
+; VENTAS
 ventas                      db  "(V)entas",0a,"$"
+    prompt_venta_codi       db  "Codigo de producto: ", "$"
+    prompt_venta_unid       db  "Unidades que desea: ", "$"
+    venta_continuar         db  "(D)esea continuar", 0a, "$"
+    venta_cancelar          db  "(C)ancelar venta", 0a, "$"
 ;
 herramientas                db  "(H)erramientas",0a,"$"
 ;
@@ -50,11 +57,23 @@ cod_prod                    db  05 dup (0)
 cod_desc                    db  21 dup (0)
 cod_prec                    db  03 dup (0)
 cod_unid                    db  03 dup (0)
+; NUMEROS
+numero                      db  05 dup (30)
+; NUMERICOS
+num_precio                  dw  0000
+num_unidades                dw  0000
 ;
-; ARCHIVOS----->
+; ARCHIVOS--------->
 ; PRODUCTOS
 arch_productos              db  "PROD.BIN",00   ; CADENA ASCIZ
 handle_productos            dw  0000 
+; VENTAS
+arch_ventas                 db  "VENT.BIN",00   ; CADENA ASCIZ
+handle_ventas               dw  0000
+
+
+; ----------SALIDAS------------->
+
 ;---------------------------------------------------------------------------------------
 
 .code
@@ -62,6 +81,18 @@ handle_productos            dw  0000
 
 ; CODIGO 
 inicio:
+    ;;
+	mov ax, 7e7
+	call numAcadena
+    ;
+	mov bx, 01
+	mov CX, 0005
+	mov DX, offset numero
+	mov AH, 40
+	int 21
+	;	
+	mPrint nueva_lin
+    ;
     ; PRINT MENSAJE INICIAL
     mPrint separador 
     mPrint MensajeInicial     
@@ -196,7 +227,6 @@ ingresar_producto_archivo:
     pedir_de_nuevo_precio:
         mPrint prompt_precio
         getData buffer_entrada
-        mPrint nueva_lin
         ;
         ; VERIFICAR QUE EL TAMAÑO DEL CODIGO NO SEA MAYOR A 4
         mov di, offset buffer_entrada
@@ -225,6 +255,17 @@ ingresar_producto_archivo:
         inc si  
         inc di
         loop copiar_precio  ; RESTARLE 1 A CX, VERIFICAR QUE CX NO SEA 0, SI NO ES 0 VA A LA ETIQUETA
+        ;
+        mPrint nueva_lin
+        mov DI, offset cod_prec
+		call cadenaAnum
+		;; AX -> numero convertido
+		mov [num_precio], AX
+		;;
+		mov DI, offset cod_prec
+		mov CX, 0005
+		call memset
+
     ; LA CADENA YA FUE INGRESADA EN LA ESTRUCTURA
 
     ; PEDIR UNIDADES
@@ -261,7 +302,16 @@ ingresar_producto_archivo:
         inc di
         loop copiar_unidades  ; RESTARLE 1 A CX, VERIFICAR QUE CX NO SEA 0, SI NO ES 0 VA A LA ETIQUETA
     ; LA CADENA YA FUE INGRESADA EN LA ESTRUCTURA
-    
+        mov DI, offset cod_unid
+		call cadenaAnum
+		;; AX -> numero convertido
+		mov [num_unidades], AX
+		;;
+		mov DI, offset cod_unid
+		mov CX, 0005
+		call memset     ; FINALIZÓ PEDIR DATOS DE PRODUCTO
+        ;
+        ;
     ; GUARDAR ARCHIVO
         ; PROBAR ABRIRLO NORMAL
         mov AL, 02
@@ -272,7 +322,6 @@ ingresar_producto_archivo:
         jc  crear_archivo_productos
         ; SI ABRE ESCRIBIMOS
         jmp guardar_handle_productos
-        ;
     crear_archivo_productos:
         mov cx, 0000
         mov dx, offset arch_productos
@@ -295,8 +344,13 @@ ingresar_producto_archivo:
 		mov DX, offset cod_prod
 		mov AH, 40
 		int 21
+        ; ESCRIBO LOS OTROS DOS
+        mov CX, 0004
+		mov DX, offset num_precio
+		mov AH, 40
+		int 21
 		; CERRAR EL ARCHIVO
-		mov AH, 3e
+		mov ah, 3e
 		int 21
 	jmp menu_productos
 
@@ -315,7 +369,13 @@ mostrar_productos_archivo:
         mov cx, 2c          ; LEEMOS 45 BYTES    
         mov dx, offset cod_prod
         mov ah, 3f
-        int 21           
+        int 21      
+        ;; PUNTERO AVANZÓ
+		mov BX, [handle_productos]
+		mov CX, 0004
+		mov DX, offset num_precio
+		mov AH, 3f
+		int 21     
         ; ¿CUANTOS BYTES LEÍMOS?
         ; SI SE LEYERON 0 BYTES ENTONCES SE TERMINÓ EL ARCHIVO
         cmp ax, 00   
@@ -331,9 +391,66 @@ mostrar_productos_archivo:
 
 menu_ventas:
     mPrint nueva_lin
-    mPrint separador_sub
-    mPrint titulo_ventas
-    mPrint separador_sub
+    mPrint separador_sub        ; =================
+    mPrint titulo_ventas        ;       VENTAS
+    mPrint separador_sub        ; =================
+    mPrint nueva_lin
+    ;
+
+    pedir_datos_ventas:
+        
+        mPrint prompt_venta_codi            ; Codigo:
+        int 03
+        
+        getData buffer_entrada              ; jalo datos
+        mov si, offset llave_fin
+        mov di, offset buffer_entrada
+        inc di
+        inc di
+        mov cx, 03
+        call cadenas_iguales
+        cmp dl, 0ff
+        je opciones_de_venta_fin            ; si finaliza, dirige a confirmar venta
+
+        mPrint nueva_lin
+        mPrint prompt_venta_unid            ; Unidades:
+        getData buffer_entrada              ; jalo datos
+        mPrint nueva_lin
+        mPrint separador_comun
+        mPrint nueva_lin
+        jmp pedir_datos_ventas              ; vuelvo a pedir codigo y unidades
+        ; AGREGAR VALIDACION DE SI SE LLEGAN A PEDIR 10 ITEMS
+    ; CONFIRMACION VENTA
+
+    ; ETIQUETA PARA CONFIRMAR LA VENTA
+    opciones_de_venta_fin:
+        ;
+        mPrint nueva_lin
+        mPrint separador_comun
+        mPrint nueva_lin
+        mPrint venta_continuar   ; Desea continua
+        mPrint venta_cancelar    ; Cancelar
+        mPrint nueva_lin
+        mPrint prompt
+        ; LEER 1 caracter
+		mov ah, 08
+		int 21
+        ; COMPARO MIS OPCIONES
+        cmp al, 64      ; d en ascii
+        mPrint nueva_lin
+        mPrint separador_comun
+        mPrint nueva_lin
+        je confirmacion_de_venta
+        ;
+        cmp al, 63      ; c en ascii
+        mPrint nueva_lin
+        mPrint separador_comun
+        mPrint nueva_lin
+        je menu_principal
+        
+    confirmacion_de_venta:
+        jmp menu_principal
+
     jmp fin
 
 ; --------------------------------------------------------------------------
@@ -346,6 +463,9 @@ menu_herramientas:
     jmp fin
 
 ; --------------------------------------------------------------------------
+
+
+
 ;;;;;;;;; SUBRUTINAS ;;;;;;;;;
 ; ENTRADAS:
 ; SALIDAS:
@@ -363,7 +483,141 @@ imprimir_estructura:
         mov [di], al
         mPrint cod_prod
         mPrint nueva_lin
-        ret
+        mov AX, [num_precio]
+		call numAcadena
+		;; [numero] tengo la cadena convertida
+		mov BX, 0001
+		mov CX, 0005
+		mov DX, offset numero
+		mov AH, 40
+		int 21
+		mPrint nueva_lin
+		mPrint nueva_lin
+		ret
+
+    ;; cadenaAnum
+    ;; ENTRADA:
+    ;;    DI -> dirección a una cadena numérica
+    ;; SALIDA:
+    ;;    AX -> número convertido
+    ;
+    ;
+    ;
+    ;;[31][32][33][00][00]
+    ;;     ^
+    ;;     |
+    ;;     ----- DI
+    ;;;;
+    ;;AX = 0
+    ;;10 * AX + *1*  = 1
+    ;;;;
+    ;;AX = 1
+    ;;10 * AX + 2  = 12
+    ;;;;
+    ;;AX = 12
+    ;;10 * AX + 3  = 123
+    ;;;;
+cadenaAnum:
+	mov AX, 0000    ; inicializar la salida
+	mov CX, 0005    ; inicializar contador
+	;;
+   seguir_convirtiendo:
+	mov BL, [DI]
+	cmp BL, 00
+	je retorno_cadenaAnum
+	sub BL, 30      ; BL es el valor numérico del caracter
+	mov DX, 000a
+	mul DX          ; AX * DX -> DX:AX
+	mov BH, 00
+	add AX, BX 
+	inc DI          ; puntero en la cadena
+	loop seguir_convirtiendo
+    retorno_cadenaAnum:
+	    ret
+
+;; numAcadena
+;; ENTRADA:
+;;     AX -> número a convertir    
+;; SALIDA:
+;;    [numero] -> numero convertido en cadena
+;;AX = 1500
+;;CX = AX  <<<<<<<<<<<
+;;[31][30][30][30][30]
+;;                  ^
+numAcadena:
+		mov CX, 0005
+		mov DI, offset numero
+ciclo_poner30s:
+		mov BL, 30
+		mov [DI], BL
+		inc DI
+		loop ciclo_poner30s
+		;; tenemos '0' en toda la cadena
+		mov CX, AX    ; inicializar contador
+		mov DI, offset numero
+		add DI, 0004
+		;;
+ciclo_convertirAcadena:
+		mov BL, [DI]
+		inc BL
+		mov [DI], BL
+		cmp BL, 3a
+		je aumentar_siguiente_digito_primera_vez
+		loop ciclo_convertirAcadena
+		jmp retorno_convertirAcadena
+aumentar_siguiente_digito_primera_vez:
+		push DI
+aumentar_siguiente_digito:
+		mov BL, 30     ; poner en '0' el actual
+		mov [DI], BL
+		dec DI         ; puntero a la cadena
+		mov BL, [DI]
+		inc BL
+		mov [DI], BL
+		cmp BL, 3a
+		je aumentar_siguiente_digito
+		pop DI         ; se recupera DI
+		loop ciclo_convertirAcadena
+retorno_convertirAcadena:
+		ret
+
+;; memset
+;; ENTRADA:
+;;    DI -> dirección de la cadena
+;;    CX -> tamaño de la cadena
+memset:
+ciclo_memset:
+		mov AL, 00
+		mov [DI], AL
+		inc DI
+		loop ciclo_memset
+		ret
+
+;; cadenas_iguales -
+;; ENTRADA:
+;;    SI -> dirección a cadena 1
+;;    DI -> dirección a cadena 2
+;;    CX -> tamaño máximo
+;; SALIDA:
+;;    DL -> 00 si no son iguales
+
+;;         0ff si si lo son
+cadenas_iguales:
+    ciclo_cadenas_iguales:
+		mov AL, [SI]
+		cmp [DI], AL
+		jne no_son_iguales
+		inc DI
+		inc SI
+		loop ciclo_cadenas_iguales
+		;;;;; <<<
+		mov DL, 0ff
+		ret
+        ;
+    no_son_iguales:	
+        mov DL, 00
+		ret
+
 fin:
 ;
 .exit
