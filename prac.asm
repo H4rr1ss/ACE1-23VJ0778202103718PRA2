@@ -37,6 +37,7 @@ separador                   db  "----------------------------------------------"
 separador_sub               db  "     ==============", 0a, "$"
 separador_comun             db  "----------------->", 0a, "$"
 nueva_lin                   db  0a, "$" 
+llave_fin                   db  "fin", "$"
 ;
 ;           MENU        ------>
 ; PRODUCTOS
@@ -51,29 +52,22 @@ productos                   db  "(P)roductoss",0a,"$"
     editar_produ            db  "(E)ditar producto",0a,"$"
     borrar_produ            db  "(B)orrar producto",0a,"$"
 ;
-; VENTAS
 ventas                      db  "(V)entas",0a,"$"
+    ingresar_venta          db  "(I)ngresar venta",0a,"$"
+    regresar                db  "(R)egresar",0a,"$"
     prompt_venta_codi       db  "Codigo de producto: ", "$"
     prompt_venta_unid       db  "Unidades que desea: ", "$"
     venta_continuar         db  "(D)esea continuar", 0a, "$"
     venta_cancelar          db  "(C)ancelar venta", 0a, "$"
-    ;
-    diaVenta                db  01 dup (0)
-    mesVenta                db  01 dup (0)
-    anioVenta               dw  00
-    horaVenta               db  01 dup (0)
-    minutoVenta             db  01 dup (0)
-    ;
-    codigoVenta             db  05 dup (0)
-    unidadesVenta           db  05 dup (0)
-    ;
-    numeroUnidadesVenta     dw  0000
-    ;
-    precioTotalVenta        dw  0000
-    contadorItemsVenta      db  0
-    llave_fin               db  "fin", "$"
+    ;; NUMERICO VENTAS
+    num_precioVenta         dw  0000
+    num_unidadesVenta       dw  0000
+    num_cantidad   	        dw  0000
+    num_monto   	        dw  0000
+    num_monto_total         dw  0000
+    ;; CONTADOR DE VENTAS
+    contadorItemsVenta      db 0
 ;
-; HERRAMIENTAS
 herramientas                db  "(H)erramientas",0a,"$"
 ;
 prompt                      db  "Elija una opcion:",0a,"$"
@@ -93,6 +87,19 @@ cod_prod                    db  05 dup (0)
 cod_desc                    db  21 dup (0)
 cod_prec                    db  03 dup (0)
 cod_unid                    db  03 dup (0)
+;
+; "ESTRUCTURA VENTAS"
+diaVenta                    db  01 dup (0)
+mesVenta                    db  01 dup (0)
+anioVenta                   dw  00
+horaVenta                   db  01 dup (0)
+minutoVenta                 db  01 dup (0)
+;
+codigoVenta     	        db  05 dup (0)
+descripcionVenta 	        db  21 dup (0)
+precioVenta			        db  05 dup (0)
+unidadesVenta   	        db  05 dup (0)
+cantidad_ventas    	        db  05 dup (0)
 ; NUMEROS
 numero                      db  05 dup (30)
 ; NUMERICOS
@@ -247,6 +254,16 @@ ingresar_producto_archivo:
         inc di          ; ME POSICIONO EN EL CONTENIDO DEL BUFFER
     copiar_codigo:
         mov al, [di]
+        ;VERIFICAR QUE CUMPLA CON LA REGEX [A-Z0-9] en hexadecimal 30-39 y 41-5A
+        cmp al, 5ah
+        ja  pedir_de_nuevo_codigo
+        cmp al, 30
+        jb  pedir_de_nuevo_codigo
+        cmp al, 3ah
+        jb continuar_copiando_codigo
+        cmp al, 41
+        jb  pedir_de_nuevo_codigo
+    continuar_copiando_codigo:
         mov [si], al
         inc si
         inc di
@@ -282,6 +299,20 @@ ingresar_producto_archivo:
         inc di          ; ME POSICIONO EN EL CONTENIDO DEL BUFFER
     copiar_descripcion:  
         mov al, [di]
+        ; VERIFICAR REGEX [A-Z a-z 0-9] en hexadecimal 30-39 y 41-5A y 61-7A
+        cmp al, 7ah
+        ja pedir_de_nuevo_descri
+        cmp al, 30
+        jb pedir_de_nuevo_descri
+        cmp al, 3ah
+        jb continuar_copiando_descri
+        cmp al, 41
+        jb pedir_de_nuevo_descri
+        cmp al, 5bh 
+        jb continuar_copiando_descri
+        cmp al, 61
+        jb pedir_de_nuevo_descri        
+    continuar_copiando_descri:
         mov [si], al
         inc si
         inc di
@@ -451,8 +482,7 @@ mostrar_productos_archivo:
         cmp ax, 00   
         je fin_mostrar      ; SI EL CARRY ESTA SETEADO SE VA AL MENU PRODUCTOS
         ; PRODUCTO EN ESTRUCTURA
-        call imprimir_estructura
-        inc cl_temp
+        call imprimir_estructura ; IMPRIMIR ESTRUCTURA   
         cmp cl_temp, 05
         jb ciclo_mostrar        
         ; SI SE LLEGA A 5, SE ESPERA A PRESIONAR ENTER PARA CONTINUAR O Q PARA SALIR AL MENU PRODUCTOS
@@ -580,8 +610,56 @@ menu_ventas:
     mPrint separador_sub        ; =================
     mPrint nueva_lin
     ;
+    mPrint ingresar_venta
+    mPrint regresar
+    mPrint nueva_lin
+    ;
+    mPrint prompt
+    ;
+    ; LEER 1 CARACTER
+	mov AH, 08
+	int 21
+	; IR A LA REGISTRAR VENTA
+	cmp AL, 69 
+    mPrint nueva_lin
+	je pedir_datos_ventas	
+	; REGRESAR AL MENU PRINCIPAL
+	cmp AL, 72 
+    mPrint nueva_lin
+	je menu_principal
+    ; SI NO ELIGE ALGUNA DE ESAS OPCIONES REPITE
+    mPrint nueva_lin
+    jmp menu_ventas
 
     pedir_datos_ventas:
+		; Reestablecer monto total 
+		mov dx, 0000
+		mov [num_monto_total], dx
+        ;
+		; Reestablecer el contador de items en 1.
+		mov dl, 0001
+		mov [contadorItemsVenta], dl
+		;	
+		;; OBTENER FECHA Y HORA
+		obtener_fecha:
+			; Obtener la fecha actual
+			mov ah, 2ah
+			int 21h
+			; Guardar la fecha
+			mov [diaVenta], dl
+			mov [mesVenta], dh
+			mov [anioVenta], cx
+        ;
+		obtener_hora:
+			; Obtener la hora actual
+			mov ah, 2ch
+			int 21h
+			; Guardar la hora actual
+			mov [horaVenta], ch
+			mov [minutoVenta], cl
+        ;
+        ;; ABRIR ARCHIVO DE VENTAS
+
         mPrint prompt_venta_codi            ; Codigo:
         getData buffer_entrada              ; jalo datos
         mov si, offset llave_fin
@@ -649,6 +727,12 @@ menu_herramientas:
 ; ENTRADAS:
 ; SALIDAS:
 imprimir_estructura:
+    ; si empieza con caracter nulo retorna
+    mov si, offset cod_prod
+    mov al, [si]
+    cmp al, 00
+    je fin_imprimir_estructura
+    inc cl_temp
     mPrint prompt_codigo
     mov di, offset cod_prod
    ;
@@ -688,6 +772,7 @@ imprimir_estructura:
 		int 21
 		mPrint nueva_lin
 		mPrint nueva_lin
+    fin_imprimir_estructura:
 		ret
 
     ;; cadenaAnum
@@ -995,6 +1080,7 @@ tecla_enter:
     cmp AL, 0dh
     jne tecla_enter
     ret
+
 
 fin:
 ;
