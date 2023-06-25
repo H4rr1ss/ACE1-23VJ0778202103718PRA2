@@ -1,16 +1,19 @@
 # MANUAL DE USUARIO 🕹️
 
+<br>
+
 ## Introducción 📑
 Con la finalidad de la implementación de las gramáticas, el curso arquitectura de computadores y ensambladores 1 se llevó a cabo un sistema para punto de venta, dicho programa control de ventas y clientes. Además, se tendrá un módulo de reportería que trabajará sobre los datos almacenados por el sistema y un módulo para carga masiva de datos.
+
 ___
 
 <br>
 
-## DESCRIPCION 📄
+## DESCRIPCION DEL SISTEMA 📄
 
 <br>
 
-## *Acceso a aplicación*
+## *Acceso al sistema:*
 Al iniciar el programa, será necesario verificar la presencia del archivo de configuración, en el directorio desde donde se ejecutó el programa, cuyo nombre debe ser "PRA2.CNF". Si no se llegara a encontrar tal archivo se denegará el acceso y se cerrará automáticamente el programa. Si el archivo es encontrado, se procederá a analizar su contenido. El archivo deberá tener el siguiente formato:
 
 ![Inicio](./images/credenciales.png)
@@ -24,14 +27,14 @@ Al iniciar el programa, será necesario verificar la presencia del archivo de co
 
 <br>
 
-# *Inicio de la aplicación*
+# *Inicio del sistema🪄*
 Si las credenciales fueron correctas se iniciará una pantalla con los datos del desarrollador y es posible acceder al menú principal presionando `Enter`.
 
 ![Inicio](./images/Inicio.png)
 
 <br>
 
-## *Menú Principal*
+## *Menú Principal🏛️*
 En el menú principal se puede seleccionar entre las siguientes opciones:
 - Productos
 - Ventas
@@ -45,7 +48,7 @@ ___
 
 <br>
 
-## *Menú Productos*
+## *Menú Productos🏛️*
 Toda operación sobre productos deberá ser realizada sobre un archivo llamado “PROD.BIN”. Se deberá verificar su existencia, de lo contrario se creará automáticamente al momento de que se ingrese el primer producto.
 
 ![Menú Principal](./images/menu_prod.png)
@@ -93,12 +96,12 @@ ___
 
 <br>
 
-## *Menú Ventas*
+## *Menú Ventas🏛️*
 El sistema contará con una sección en la que se podrá registrar una venta y generar el resumen correspondiente de la venta realizada.
 
 - Cada venta podrá tener como máximo 10 ítems.
 
-- Se le solicitará código del producto y unidades a vender. Una vez ingresados se validarán las entradas y se
+- Se solicitará código del producto y unidades a vender. Una vez ingresados se validarán las entradas y se
 registrará el ítem. Este proceso se repetirá hasta completar los ítems o cuando el usuario escriba la palabra ’fin’, cuando se solicite el código.
 
 - Se mostrará que el producto tenga existencias antes de agregar el ítem.
@@ -122,22 +125,20 @@ ___
 
 <br>
 
-## *Menú herramientas*
+## *Menú herramientas🏛️*
 La sección de herramientas contiene una serie de utilidades cuya función principal será la generación de diversos reportes.
 
 ![Menú Principal](./images/menu_herramientas.png)
 
-<br>
+- *Generación de catálogo:* esta opción permitirá generar el listado completo de productos en formato HTML. Se mostraran todos los datos de cada producto. También, se mostrará la fecha y hora de generación del reporte. Al generar este reporte se visualizará en un archivo llamado “CATALG.HTM”.
 
-- *Generación de catálogo:* esta opción permitirá generar el listado completo de productos en formato HTML. Se mostraran todos los datos de cada producto. También, se deberá colocar la fecha y hora de generación del reporte. Al generar este reporte se deberá crear el archivo llamado “CATALG.HTM” para guardar el contenido correspondiente.
-
-- *Reporte alfabético de productos:* se muestra la cantidad de productos cuya descripción inicie con cada una de las letras del abecedario. El archivo generado por esta funcionalidad será llamado “ABC.HTM”.
+- *Reporte alfabético de productos:* se muestra la cantidad de productos cuya descripción inicie con cada una de las letras del abecedario. El nombre del archivo generado es “ABC.HTM”.
 
 - *Reporte de ventas:*
-Este reporte tendrá tres secciones. En la primera se muestran las últimas cinco ventas. La siguiente contendrá la venta con el mayor monto y en la última sección se mostrará la venta con menor monto. El nombre del archivo generado es “REP.TXT”.
+Este reporte tendrá tres secciones. En la primera se muestran las últimas cinco ventas. La siguiente se muestra la venta con el mayor monto y en la última sección se muestra la venta con menor monto. El nombre del archivo generado es “REP.TXT”.
 
 
-- *Reporte de productos sin existencias:* muestra los productos que se hayan quedado sin existencias. Se deberán mostrar todos los datos del producto y la fecha y hora de generación. El archivo con el contenido de este reporte se llamará “FALTA.HTM”.
+- *Reporte de productos sin existencias:* muestra los productos que se hayan quedado sin existencias. Todos los datos del producto y la fecha y hora de generación. El archivo con el contenido de este reporte es “FALTA.HTM”.
 
 <br>
 
