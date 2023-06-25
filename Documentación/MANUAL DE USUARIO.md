@@ -94,4 +94,59 @@ ___
 <br>
 
 ## *Menú Ventas*
+El sistema contará con una sección en la que se podrá registrar una venta y generar el resumen correspondiente de la venta realizada.
 
+- Cada venta podrá tener como máximo 10 ítems.
+
+- Se le solicitará código del producto y unidades a vender. Una vez ingresados se validarán las entradas y se
+registrará el ítem. Este proceso se repetirá hasta completar los ítems o cuando el usuario escriba la palabra ’fin’, cuando se solicite el código.
+
+- Se mostrará que el producto tenga existencias antes de agregar el ítem.
+
+Toda venta realizada se deberá registrar en un archivo llamado “VENT.BIN”, el cuál se creará al insertar la primera venta si es que no existe. 
+
+<br>
+
+* ## *Ingresar venta*
+
+![Menú Principal](./images/ingresar_venta.png)
+
+<br>
+
+* ## *Opción regresar*
+Esta opción hace regresar directamente hacia el menú principal por si se desea realizar otra operación
+
+<br>
+
+___
+
+<br>
+
+## *Menú herramientas*
+La sección de herramientas contiene una serie de utilidades cuya función principal será la generación de diversos reportes.
+
+![Menú Principal](./images/menu_herramientas.png)
+
+<br>
+
+- *Generación de catálogo:* esta opción permitirá generar el listado completo de productos en formato HTML. Se mostraran todos los datos de cada producto. También, se deberá colocar la fecha y hora de generación del reporte. Al generar este reporte se deberá crear el archivo llamado “CATALG.HTM” para guardar el contenido correspondiente.
+
+- *Reporte alfabético de productos:* se muestra la cantidad de productos cuya descripción inicie con cada una de las letras del abecedario. El archivo generado por esta funcionalidad será llamado “ABC.HTM”.
+
+- *Reporte de ventas:*
+Este reporte tendrá tres secciones. En la primera se muestran las últimas cinco ventas. La siguiente contendrá la venta con el mayor monto y en la última sección se mostrará la venta con menor monto. El nombre del archivo generado es “REP.TXT”.
+
+
+- *Reporte de productos sin existencias:* muestra los productos que se hayan quedado sin existencias. Se deberán mostrar todos los datos del producto y la fecha y hora de generación. El archivo con el contenido de este reporte se llamará “FALTA.HTM”.
+
+<br>
+
+___
+
+<br>
+
+~~~
+Universidad de San Carlos de Guatemala 2023
+Programador: Harry Aaron Gómez Sanic
+Carné: 202103718
+~~~
