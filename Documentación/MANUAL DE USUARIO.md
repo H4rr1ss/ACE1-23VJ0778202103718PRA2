@@ -1,15 +1,16 @@
-# MANUAL DE USUARIO 🕹️
+# **MANUAL DE USUARIO** 🕹️
 
 <br>
 
-## Introducción 📑
+## **Introducción** 📑
+
 Con la finalidad de la implementación de las gramáticas, el curso arquitectura de computadores y ensambladores 1 se llevó a cabo un sistema para punto de venta, dicho programa control de ventas y clientes. Además, se tendrá un módulo de reportería que trabajará sobre los datos almacenados por el sistema y un módulo para carga masiva de datos.
 
 ___
 
 <br>
 
-## DESCRIPCION DEL SISTEMA 📄
+## **DESCRIPCION DEL SISTEMA** 📄
 
 <br>
 
@@ -27,7 +28,7 @@ Al iniciar el programa, será necesario verificar la presencia del archivo de co
 
 <br>
 
-# *Inicio del sistema🪄*
+# ***Inicio del sistema**🪄*
 Si las credenciales fueron correctas se iniciará una pantalla con los datos del desarrollador y es posible acceder al menú principal presionando `Enter`.
 
 ![Inicio](./images/Inicio.png)
@@ -48,7 +49,7 @@ ___
 
 <br>
 
-## *Menú Productos🏛️*
+## ***Menú Productos**🏛️*
 Toda operación sobre productos deberá ser realizada sobre un archivo llamado “PROD.BIN”. Se deberá verificar su existencia, de lo contrario se creará automáticamente al momento de que se ingrese el primer producto.
 
 ![Menú Principal](./images/menu_prod.png)
@@ -96,7 +97,7 @@ ___
 
 <br>
 
-## *Menú Ventas🏛️*
+## ***Menú Ventas**🏛️*
 El sistema contará con una sección en la que se podrá registrar una venta y generar el resumen correspondiente de la venta realizada.
 
 - Cada venta podrá tener como máximo 10 ítems.
@@ -125,7 +126,7 @@ ___
 
 <br>
 
-## *Menú herramientas🏛️*
+## ***Menú herramientas**🏛️*
 La sección de herramientas contiene una serie de utilidades cuya función principal será la generación de diversos reportes.
 
 ![Menú Principal](./images/menu_herramientas.png)
@@ -151,3 +152,7 @@ Universidad de San Carlos de Guatemala 2023
 Programador: Harry Aaron Gómez Sanic
 Carné: 202103718
 ~~~
+
+<br>
+
+___
