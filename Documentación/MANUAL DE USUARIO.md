@@ -6,21 +6,51 @@ ___
 
 <br>
 
-                                                DESCRIPCION 📄
+## DESCRIPCION 📄
 
 <br>
 
 ## *Acceso a aplicación*
-    Al iniciar el programa, será necesario verificar la presencia del archivo de configuración, en el directorio desde donde se ejecutó el programa, cuyo nombre debe ser "PRA2.CNF". Si no se llegara a encontrar tal archivo se denegará el acceso y se cerrará automáticamente el programa. Si el archivo es encontrado, se procederá a analizar su contenido. El archivo deberá tener el siguiente formato:
+Al iniciar el programa, será necesario verificar la presencia del archivo de configuración, en el directorio desde donde se ejecutó el programa, cuyo nombre debe ser "PRA2.CNF". Si no se llegara a encontrar tal archivo se denegará el acceso y se cerrará automáticamente el programa. Si el archivo es encontrado, se procederá a analizar su contenido. El archivo deberá tener el siguiente formato:
 
 ![Inicio](./images/credenciales.png)
 
 <br>
 
-## *Productos*
-    Toda operación sobre productos deberá ser realizada sobre un archivo llamado “PROD.BIN”. Se deberá verificar su existencia, de lo contrario se creará automáticamente al momento de que se ingrese el primer producto. Toda operación sobre productos deberá ser realizada sobre un archivo llamado “PROD.BIN”. 
+## *Ejecución*
+1. Abrir DOSBox
+2. Compilar el archivo `main.asm` con el comando `ml main.asm`
+3. Ejecutar el archivo `main.exe` con el comando `main.exe`
 
-    Debe cumplir las siguientes condiciones:
+<br>
+
+# *Inicio de la aplicación*
+Si las credenciales fueron correctas se iniciará una pantalla con los datos del desarrollador y es posible acceder al menú principal presionando `Enter`.
+
+![Inicio](./images/Inicio.png)
+
+<br>
+
+## *Menú Principal*
+En el menú principal se puede seleccionar entre las siguientes opciones:
+- Productos
+- Ventas
+- Herramientas
+
+![Menú Principal](./images/MenuPrincipal.png)
+
+<br>
+
+___
+
+<br>
+
+## *Menú Productos*
+Toda operación sobre productos deberá ser realizada sobre un archivo llamado “PROD.BIN”. Se deberá verificar su existencia, de lo contrario se creará automáticamente al momento de que se ingrese el primer producto.
+
+![Menú Principal](./images/menu_prod.png)
+
+Debe cumplir las siguientes condiciones:
 
 | Descripción |           Validez        |
 | ------  | ------ |
@@ -32,31 +62,36 @@ ___
 <br>
 
 * ## *Ingreso de productos*
+Para esta sección simplemente se le solicitarán ingresar los datos requeridos, se validarán según corresponda y se añadirá el producto en el archivo indicado. 
 
-- DOSBox
-- MASM
+![Menú Principal](./images/ingresar_prod.png)
 
-# *Ejecución*
-1. Abrir DOSBox
-2. Compilar el archivo `prac.asm` con el comando `ml prac.asm`
-3. Ejecutar el archivo `prac.exe` con el comando `prac.exe`
+<br>
 
-# *Inicio de la aplicación*
-![Inicio](./images/Inicio.png)
+* ## *Mostrar productos*
+El sistema cuenta con una opción para mostrar los productos ingresados. Estos productos serán mostrados en grupos de cinco. Una vez mostrados los primeros cinco productos, presione ’ENTER’ si desea continuar o ’q’, letra ’q’ minúscula, si desea terminar esta operación.
 
-Se una pantalla con los datos del desarrollador y es posible acceder al menú principal presionando `Enter`.
+![Menú Principal](./images/mostrar_prod.png)
 
-# *Menú Principal*
 
-![Menú Principal](./images/MenuPrincipal.png)
+<br>
 
-En el menú principal se puede seleccionar entre las siguientes opciones:
-- Productos
-- Ventas
-- Herramientas
+* ## *Borrar productos*
+Para esta parte ingrese el código de un producto, se validará, y si corresponde al código de un producto en el archivo, este, será eliminado.
 
-## *Iniciar Juego*
+![Menú Principal](./images/borrar_prod.png)
 
-![Productos](./images/productosI.png)
 
-Al seleccionar la opción `Menú productos` se inicia una nueva partida.
+<br>
+
+* ## *Opción regresar*
+Esta opción hace regresar directamente hacia el menú principal por si se desea realizar otra operación
+
+<br>
+
+___
+
+<br>
+
+## *Menú Ventas*
+
