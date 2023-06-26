@@ -74,8 +74,10 @@ ventas                      db  "(V)entas",0a,"$"
     contadorItemsVenta      db 0
     regresar                db  "(R)egresar",0a,"$"
 ;
+salir                      db  "(S)alir",0a,"$"
 ; SECCION GENERAL DE HERRAMIENTAS
 herramientas                db  "(H)erramientas",0a,"$"
+	prompt_herramientas		db	" 1) Generacion de catalogo completo", 0dh, 0ah, " 2) Reporte alfabético de productos", 0dh, 0ah, " 3) Reporte de ventas", 0dh, 0ah, " 4) Reporte de productos sin existencias", 0a, "$"
 ; EXTRAS
 prompt                      db  "Elija una opcion:",0a,"$"
 temp                        db  00, "$"; Cadena temporal
@@ -135,6 +137,54 @@ cl_temp                     db  00
 ; TEXTO FINALIZAR EJECUCIÓN
 fin_ejecucion_programa      db  "    Credenciales incorrectas.", "$"
 credenciales_true           db  "    CREDECIALES CORRECTAS, presione enter", 0a, "$"
+;
+;										<---------- REPORTES ---------->
+;	GENERACIÓN DE CATÁLOGO
+;;VARIABLES DE TAMAÑO HTML 
+tam_encabezado_html		db 	1b ;; 27
+tam_tit_Catalogo_html	db	17 ;; 23
+tam_style_Table_html	db	38 ;; 56
+tam_style_Th_html		db	41 ;; 65
+tam_cierre_style		db	8  ;; 8
+tam_cierre_head			db	7  ;; 7
+tam_body_Cataologo_html	db  2d ;;45
+tam_fecha_html			db	0a  ;; 10
+tam_hora_html			db	8  ;; 8
+tam_cierre_p			db  4  ;; 4
+tam_apertura_table		db  7  ;; 7
+tam_cierre_table		db 	8  ;; 8
+tam_apertura_tr			db  4  ;; 4
+tam_titulos_html		db  3e  ;; 62
+tam_cierre_tr			db	5	;; 5
+tam_apertura_td			db	4  ;; 4
+tam_cierre_td			db	5	;; 5
+tam_cierre_body			db	7  ;; 7
+tam_cierre_html			db	7  ;; 7
+tam_titulos_alfa_html	db  27 ;;39
+tam_body_Rep_alfa_html  db  2e ;; 46
+;
+encabezado_html        	db	"<!DOCTYPE html><html><head>" 
+tit_Catalogo_html 		db	"<title>Reporte</title>"	
+style_Table_html		db	"<style>table { width: 100%; border-collapse: collapse; }" 
+style_Th_html			db  "th, td {border: 1px solid black; padding: 8px; text-align: left;}"
+cierre_style           	db  "</style>"
+cierre_head            	db  "</head>"
+body_Cataologo_html     db  "<body><h1>Catalogo Completo de Productos</h1>"
+body_Rep_alfa_html		db	"<body><h1>Reporte Alfabetico de Productos</h1>"
+fecha_html				db	"<p>Fecha: "
+hora_html 				db	"<p>Hora:"
+cierre_p				db	"</p>"
+apertura_table			db 	"<table>"
+cierre_table			db	"</table>"
+apertura_tr				db	"<tr>"
+titulos_alfa_html		db	"<th>Letra</th><th>Cantidad de Productos"
+titulos_html			db	"<th>Código</th><th>Descripción</th><th>Precio</th><th>Unidades"
+cierre_tr				db	"</tr>"
+apertura_td				db	"<td>"
+cierre_td				db	"</td>"
+cierre_body				db	"</body>"
+cierre_html				db	"</html>"
+cierre_th				db  "</th>"
 ;---------------------------------------------------------------------------------------
 
 .code
@@ -189,6 +239,7 @@ menu_principal:
     mPrint productos                    
     mPrint ventas
     mPrint herramientas
+	mPrint salir
     mPrint nueva_lin
     ;
     ; OPCION A ELEGIR POR EL USUARIO[leer 1 caracter]
@@ -204,6 +255,8 @@ menu_principal:
     je menu_ventas
     cmp al, 68              ; h MINUS
     je menu_herramientas
+	cmp al, 73				; s MINUS
+	je fin
     jmp menu_principal
 
 ; MENÚS DE CADA OPCIÓN
@@ -213,6 +266,7 @@ menu_productos:
     mPrint ingresar_produ
     mPrint mostrar_produ
     mPrint borrar_produ
+	mPrint regresar
     mPrint nueva_lin
     ;
     mPrint prompt
@@ -227,6 +281,8 @@ menu_productos:
     je mostrar_productos_archivo
     cmp al, 62              ; b MINUS -> borrar
     je eliminar_producto_archivo
+	cmp al, 72				; menu principal
+	je menu_principal
     jmp menu_productos
 
 ingresar_producto_archivo:
@@ -346,7 +402,7 @@ ingresar_producto_archivo:
         cmp al, 00
         je  pedir_de_nuevo_precio
         ; SI AL ES MENOR A 03 ACEPTA LA ENTRADA
-        cmp al, 06
+        cmp al, 03
         jb aceptar_tam_precio
         ; SI AL NO ERA MENOR A 03, pedira de nuevo 
         mPrint nueva_lin
@@ -392,7 +448,7 @@ ingresar_producto_archivo:
         cmp al, 00
         je  pedir_de_nuevo_unidades
         ; SI AL ES MENOR A 03 ACEPTA LA ENTRADA
-        cmp al, 06
+        cmp al, 03
         jb aceptar_tam_unidades
         ; SI AL NO ERA MENOR A 03, pedira de nuevo 
 		mPrint nueva_lin
@@ -612,10 +668,407 @@ ingresar_producto_archivo:
 ; --------------------------------------------------------------------------
 
 menu_ventas:
-		mov DX, offset titulo_ventas
-		mov AH, 09
-		int 21
-		jmp fin
+    mPrint nueva_lin
+    mPrint separador_sub        ; =================
+    mPrint titulo_ventas        ;       VENTAS
+    mPrint separador_sub        ; =================
+    mPrint nueva_lin
+    ;
+    mPrint ingresar_venta
+    mPrint regresar
+    mPrint nueva_lin
+    ;
+    mPrint prompt
+    ;
+    ; LEER 1 CARACTER
+	mov AH, 08
+	int 21
+	; IR A LA REGISTRAR VENTA
+	cmp AL, 69 
+    mPrint nueva_lin
+	je pedir_datos_ventas	
+	; REGRESAR AL MENU PRINCIPAL
+	cmp AL, 72 
+    mPrint nueva_lin
+	je menu_principal
+    ; SI NO ELIGE ALGUNA DE ESAS OPCIONES REPITE
+    mPrint nueva_lin
+    jmp menu_ventas
+
+    pedir_datos_ventas:
+		; Reestablecer monto total 
+		mov dx, 0000
+		mov [num_monto_total], dx
+        ;
+		; Reestablecer el contador de items en 1.
+		mov dl, 0001
+		mov [contadorItemsVenta], dl
+		;	
+		;; OBTENER FECHA Y HORA
+		obtener_fecha:
+			; Obtener la fecha actual
+			mov ah, 2ah
+			int 21h
+			; Guardar la fecha
+			mov [diaVenta], dl
+			mov [mesVenta], dh
+			mov [anioVenta], cx
+        ;
+		obtener_hora:
+			; Obtener la hora actual
+			mov ah, 2ch
+			int 21h
+			; Guardar la hora actual
+			mov [horaVenta], ch
+			mov [minutoVenta], cl
+        ;
+        ;; ABRIR ARCHIVO DE VENTAS
+		abrir_archivo_ventas:
+			; Intentar abrir el archivo de productos
+			mov al, 02
+			mov ah, 3d
+			mov dx, offset arch_ventas
+			int 21
+            ;
+			; Si no existe, crearlo
+			jc  crear_archivo_ventas
+			; Si existe, guardar el handle
+			jmp guardar_handle_ventas
+            ;
+        ;; CREAR ARCHIVO DE VENTAS
+        crear_archivo_ventas:
+			; Crear el archivo de ventas
+			mov cx, 0000
+			mov dx, offset arch_ventas
+			mov ah, 3ch
+			int 21h
+        ;; GUARDAR HANDLE DEL ARCHIVO DE VENTAS
+		guardar_handle_ventas:
+			; Guardar el handle del archivo
+			mov [handle_ventas], ax
+			mov bx, [handle_ventas]
+
+			; Mover el puntero del archivo al final
+			mov cx, 0000
+			mov dx, 0000
+			mov al, 02h
+			mov ah, 42h
+			int 21h
+        ;
+        ;; ESCRIBIR FECHA Y HORA
+		escribir_fecha_hora:
+			; Escribir la fecha y hora en el archivo
+			mov cx, 06h
+			mov dx, offset diaVenta
+			mov ah, 40
+			int 21h
+        ;
+        ;; AÑADIR ITEM A LA VENTA
+		agregar_item:
+			; PUNTERO TEMPORAL
+			mov DX, 0000
+			mov [puntero_temp], DX
+            mPrint nueva_lin
+            ;
+        pedir_codigo_ventas:
+            mPrint prompt_venta_codi            ; Codigo:
+            getData buffer_entrada              ; jalo datos
+            ;
+            ; VERIFICAR QUE EL TAMAÑO DEL CODIGO NO SEA MAYOR A 5
+			mov DI, offset buffer_entrada
+			inc DI
+			mov AL, [DI]
+            ;
+			; Si es igual a 0 pedir de nuevo
+			cmp AL, 00					
+			je  pedir_codigo_ventas ;; je --> jump if equal (si es igual a 0)
+            ;
+			; Si es menor a 5 pasar a verificar 
+			cmp AL, 05
+			jb  aceptar_codigo_ventas  ;; jb --> jump if below (si es menor a 5)
+            ;
+            mPrint nueva_lin
+            jmp pedir_codigo_ventas
+
+        ;; ACEPTAR TAMAÑO DEL CODIGO		
+		aceptar_codigo_ventas:
+			; Copiar el código a la estructura 
+			mov SI, offset cod_prod_temp
+			mov DI, offset buffer_entrada
+			inc DI
+			mov CH, 00
+			mov CL, [DI]
+			inc DI  ;; me posiciono en el contenido del buffer
+
+        imprimir_codigo_ventas:
+			; Mostrar el código
+			mov AL, [DI]
+			mov [SI], AL
+			inc SI
+			inc DI
+			loop imprimir_codigo_ventas  ;; restarle 1 a CX, verificar que CX no sea 0, si no es 0 va a la etiqueta, 
+											;; la cadena ingresada en la estructura
+			mPrint nueva_lin
+			; Verificar si es fin
+			mov SI, offset cod_prod_temp
+			mov DI, offset llave_fin
+			mov CX, 0005
+			call cadenas_iguales
+			cmp DL, 0ff
+
+			; Si es finalizar venta
+			je finalizar_ventas
+
+			; Si no es abrir archivo de productos					
+			mov AL, 02              ;;;<<<<<  lectura/escritura
+			mov DX, offset arch_productos
+			mov AH, 3d
+			int 21
+			mov [handle_productos], AX
+            
+        ;; CICLO PARA ENCONTRAR EL PRODUCTO		
+		ciclo_encontrar_producto_ventas:
+			; Puntero en el código del producto
+			mov BX, [handle_productos]
+			mov CX, 26
+			mov DX, offset codigoVenta
+			moV AH, 3f
+			int 21
+			;
+			; Puntero en el precio del producto
+			mov BX, [handle_productos]
+			mov CX, 4
+			mov DX, offset num_precioVenta
+			moV AH, 3f
+			int 21
+			; Comparar si se termino el archivo para finalizar venta 
+			;;(o lanzar mensaje de que no encontró)
+			cmp AX, 0000   
+			je finalizar_ventas
+			; Avanzar el puntero
+			;mov DX, [puntero_temp]
+			;add DX, 2a
+			;mov [puntero_temp], DX
+            ;
+			; verificar si es producto válido
+			mov AL, 00
+			cmp [codigoVenta], AL
+			je ciclo_encontrar_producto_ventas
+            ;
+			; verificar el código con el código ingresado
+			mov SI, offset cod_prod_temp
+			mov DI, offset codigoVenta
+			mov CX, 0005
+            ;
+			;; Verificar las cadenas
+			call cadenas_iguales
+			cmp DL, 0ff
+			; Mostrar en pantalla el producto
+			je imprimir_encontrado
+            ;
+			; Seguir buscando
+			jmp ciclo_encontrar_producto_ventas
+            ;
+        ;; IMPRIMIR ESTRUCTURA
+		imprimir_encontrado:
+			; Posicionar en descipcion		
+			mov DI, offset descripcionVenta
+            ;
+        ;; CICLO PARA PONER $		
+		ciclo_poner_dolar_3:
+			mov AL, [DI]
+			cmp AL, 00
+			je poner_dolar_3
+			inc DI
+			jmp ciclo_poner_dolar_3
+
+        ;; PONER $ 		
+		; Poner dolar
+		poner_dolar_3:
+			mov AL, 24  ;; dólar 1155
+			mov [DI], AL
+            ;
+			; Imprimir la descripción
+			mPrint separador_comun
+			mPrint prompt_descri
+			mPrint descripcionVenta
+			mPrint nueva_lin
+			; Impresión del precio 
+			mPrint prompt_precio
+            ;
+			mov AX, [num_precioVenta]
+			call numAcadena
+            ;
+			mov BX, 0001
+			mov CX, 0005
+			mov DX, offset numero
+			mov AH, 40
+			int 21
+			mPrint nueva_lin
+			; Impresión de unidades
+			mPrint prompt_unidades
+            ;
+			mov AX, [num_unidadesVenta]
+			call numAcadena
+			;
+			mov BX, 0001
+			mov CX, 0005
+			mov DX, offset numero
+			mov AH, 40
+			int 21
+            ;
+			mPrint nueva_lin
+			;
+			; Separación
+			mPrint separador_comun
+
+        ;; PEDIR UNIDADES		
+		pedir_de_nuevo_cantidades:		
+			; Pedir cantidad a requerir 		
+			mPrint prompt_cantidad
+			getData buffer_entrada
+            ;
+			; verificar que el tamaño del codigo no sea mayor a 5
+			mov DI, offset buffer_entrada
+			inc DI
+			mov AL, [DI]
+            ;
+			; Si es igual a 0 pedir de nuevo
+			cmp AL, 00
+			je  pedir_de_nuevo_cantidades
+            ;
+			; Si es menor a 5 pasar a verificar
+			cmp AL, 06  ;; tamaño máximo del campo
+			jb  aceptar_tam_cantidades ;; jb --> jump if below
+            ;
+			mPrint nueva_lin
+            ;
+			; Pedir de nuevo
+			jmp pedir_de_nuevo_cantidades
+
+        ;; ACEPTAR TAMAÑO DE UNIDADES		
+		aceptar_tam_cantidades:
+			;; Copiar la cantidad a la estructura
+			mov SI, offset cantidad_ventas
+			mov DI, offset buffer_entrada
+			inc DI
+			mov CH, 00
+			mov CL, [DI]
+			inc DI  ;; me posiciono en el contenido del buffer
+
+        ;; IMPRIMIR LAS UNIDADES		
+		copiar_cantidades:
+			; Impresión de unidades
+			mov AL, [DI]
+			mov [SI], AL
+			inc SI
+			inc DI
+			loop copiar_cantidades  ;; restarle 1 a CX, verificar que CX no sea 0, si no es 0 va a la etiqueta, 
+			;
+			; Conversion de cadena a numero
+			mov DI, offset cantidad_ventas
+			call cadenaAnum ;; AX -> numero convertido				
+			mov [num_cantidad], AX
+			;
+			; Limpieza de variable cantidad
+			mov DI, offset cantidad_ventas
+			mov CX, 0005
+			call memset
+
+        ;; CALCULAR MONTO
+			; IMPRIMIR MONTO
+			mPrint nueva_lin
+			mPrint prompt_monto
+            ;
+            ; MULTIPLICACION
+			mov AX,  [num_precioVenta]
+			mul num_cantidad ; resultado en AX
+			mov [num_monto], AX ; guardo el monto
+            ;
+			mov AX, [num_monto]
+			call numAcadena ;; [numero] tengo la cadena convertida
+			mov BX, 0001
+			mov CX, 0005
+            ;
+			mov DX, offset numero
+			mov AH, 40
+			int 21
+			; IMPRIMIR MONTO TOTAL
+			mPrint nueva_lin
+			mPrint prompt_monto_total
+			; SUMA DEL MONTO TOTAL
+			mov DI, [num_monto]
+			add [num_monto_total], DI	
+            ;
+			mov AX, [num_monto_total]
+			call numAcadena ;; [numero] tengo la cadena convertida
+			mov BX, 0001
+			mov CX, 0005
+            ;
+			mov DX, offset numero
+			mov AH, 40
+			int 21
+            ;
+			mPrint nueva_lin
+			; Escribir en el archivo
+			jmp escribir_nuevo_item	
+
+        ;; ESCRIBIR NUEVO ITEM EN EL ARCHIVO
+		escribir_nuevo_item:
+			; 1. Escribir el codigo del producto
+			mov bx, [handle_ventas]
+			mov cx, 0005
+			mov dx, offset codigoVenta
+			mov ah, 40h
+			int 21h
+			; 2. Escribir las unidades del producto (Es un numero)
+			mov bx, [handle_ventas]
+			mov cx, 0002
+			mov dx, offset num_cantidad
+			mov ah, 40h
+			int 21h
+			; 3. Escribir el monto total que se lleva de la venta (Es un numero)
+			mov bx, [handle_ventas]
+			mov cx, 0002
+			mov dx, offset num_monto_total
+			mov ah, 40h
+			int 21h
+			; Limpiar la variable codigoVenta y descripcionVenta
+			mov di, offset codigoVenta
+			mov cx, 26
+			call memset
+			; Limpiar la variable num_cantidad
+			mov dx, 0000
+			mov [num_cantidad], dx
+			; Limpiar la variable del monto 
+			mov dx, 0000
+			mov [num_monto], dx
+			; Verificar el contador de items
+			mov dl, contadorItemsVenta
+			cmp dl, 000ah
+			je finalizar_ventas
+			; Incrementar contador para agregar otro item
+			inc dl
+			mov [contadorItemsVenta], dl
+			jmp agregar_item
+
+        ;; FINALIZAR LA ACCIÓN DE BORRAR		
+		finalizar_ventas:
+			; CEERRAR ARCHIVO PRODS
+			mov BX, [handle_productos]
+			mov AH, 3e
+			int 21
+			; Escribir el separador de ventas
+			mov bx, [handle_ventas]
+			mov cx, 0001
+			mov dx, offset separadorVentas
+			mov ah, 40h
+			int 21h
+			; Cerrar el archivo
+			mov ah, 3eh
+			int 21h
+			; Regresar al menu de ventas
+			jmp menu_ventas
 
 ; --------------------------------------------------------------------------
 
@@ -624,7 +1077,254 @@ menu_herramientas:
     mPrint separador_sub
     mPrint titulo_herras
     mPrint separador_sub
-    jmp fin
+	;
+	mPrint nueva_lin
+	mPrint prompt_herramientas
+	mPrint nueva_lin
+	;
+	mov ah, 08              ; SE TIENE EN AL EL CARACTER QUE SE INGRESE
+    int 21                  ; AL = CARACTER LEIDO
+    mPrint separador_comun
+    ;
+    ; COMPARACION USUARIO-OPCIONES_MENÚ
+    cmp al, 31              ; 1 MINUS -> generacion catalogo
+    je generar_catalogo_html
+    cmp al, 32              ; 2 MINUS -> reporte alfabetico de productos
+    je fin
+    cmp al, 33              ; 3 MINUS -> Reporte de ventas
+    je fin
+	cmp al, 34				; 4 MINUS -> Reporte de productos sin existencias
+	je fin
+	;
+	generar_catalogo_html:
+		mov ah, 3c
+		mov cx, 0000
+		mov dx, offset nombre_rep1
+		int 21
+		mov [handle_reps], ax
+		;
+		; <!DOCTYPE html><html><head>
+		mov bx, ax
+		mov ah, 40
+		mov cl, [tam_encabezado_html]
+		mov dx, offset encabezado_html
+		int 21
+		;
+		; etiqueta title
+		colocar_etiqueta_html handle_reps, tam_tit_Catalogo_html, tit_Catalogo_html
+		; etiqueta style
+		colocar_etiqueta_html handle_reps, tam_style_Table_html, style_Table_html
+		; etiqueta th
+		colocar_etiqueta_html handle_reps, tam_style_Th_html, style_Th_html
+		; etiqueta cierre_style
+		colocar_etiqueta_html handle_reps, tam_cierre_style, cierre_style
+		; etiqueta /head
+		colocar_etiqueta_html handle_reps, tam_cierre_head, cierre_head
+		; inicio de body 
+		colocar_etiqueta_html handle_reps, tam_body_Cataologo_html, body_Cataologo_html
+		; etiqueta table
+		colocar_etiqueta_html handle_reps, tam_apertura_table, apertura_table
+		; etiqueta tr
+		colocar_etiqueta_html handle_reps, tam_apertura_tr, apertura_tr
+		; etiqueta th
+		colocar_etiqueta_html handle_reps, tam_titulos_html, titulos_html
+		; etiqueta cierre th
+		mov BX, [handle_reps]
+		mov AH, 40
+		mov CH, 00
+		mov CL, 05
+		mov DX, offset cierre_th
+		int 21
+		; etiqueta cierre tr
+		mov BX, [handle_reps]
+		mov AH, 40
+		mov CH, 00
+		mov CL, [tam_cierre_tr]
+		mov DX, offset cierre_tr
+		int 21
+		;
+		;; OPEN DISK FILE WITH HANDLE 
+		mov AH, 3d
+		mov AL, 02
+		mov DX, offset arch_productos
+		int 21
+		;
+		mov [handle_productos], AX
+
+	ciclo_mostrar_catologo:
+		;; READ FROM FILE WITH HANDLE
+		mov BX, [handle_productos]
+		mov CX, 26     ;; leer 26h bytes
+		mov DX, offset cod_prod
+		mov AH, 3f
+		int 21
+		;; puntero avanzó
+		mov BX, [handle_productos]
+		mov CX, 0004
+		mov DX, offset num_precio
+		mov AH, 3f
+		int 21
+		;
+		;; verificar que no sea nulo, si es termina 
+		cmp AX, 00
+		je fin_mostrar_catologo
+		;
+		;; ver si es producto válido
+		mov AL, 00
+		cmp [cod_prod], AL
+		je ciclo_mostrar_catologo
+		;
+		;; llamar a la sub-rutina 
+		call imprimir_estructura_html
+		;
+		jmp ciclo_mostrar_catologo
+	
+	fin_mostrar_catologo:
+		; etiqueta cierre table
+		colocar_etiqueta_html handle_reps, tam_cierre_table, cierre_table
+		; etiqueta cierre body
+		colocar_etiqueta_html handle_reps, tam_cierre_body, cierre_body
+		; etiqueta cierre html
+		colocar_etiqueta_html handle_reps, tam_cierre_html, cierre_html
+		;
+		; CLOSE A FILE WITH HANDLE
+		mov AH, 3e
+		int 21
+		;
+		jmp menu_herramientas
+
+	imprimir_estructura_html:
+		; eitqueta tr
+		colocar_etiqueta_html handle_reps, tam_apertura_tr, apertura_tr
+		; etiqueta td
+		colocar_etiqueta_html handle_reps, tam_apertura_td, apertura_td
+		;
+		; dx toma el valor del codigo 
+		mov DX, offset cod_prod
+		; contador que inicia en 0 
+		mov SI, 0000
+
+	ciclo_escribir_codigo:
+		mov DI, DX
+		mov AL, [DI]
+		;;valida si no es nulo, si lo es se va a 
+		cmp AL, 00
+		je escribir_descripcion
+		;;valida que la cadena se encuentra llena 
+		cmp SI, 0006
+		je escribir_descripcion
+		;
+		;;write to file with handle ---> escribir 
+		mov CX, 0001
+		mov BX, [handle_reps]
+		mov AH, 40
+		int 21
+		;
+		inc DX  ;; <-- para que se vaya la siguiente byte 
+		inc SI  ;; <-- si se escribe algo en el arcribo, aumenta el contador 
+		;
+		jmp ciclo_escribir_codigo
+
+	escribir_descripcion:
+		; etiqueta cierre td
+		colocar_etiqueta_html handle_reps, tam_cierre_td, cierre_td
+		; etiqueta td
+		colocar_etiqueta_html handle_reps, tam_apertura_td, apertura_td
+		;; dx toma el valor de la descripcion 
+		mov DX, offset cod_desc
+		mov SI, 0000
+
+	ciclo_escribir_descripcion:
+		mov DI, DX
+		mov AL, [DI]
+		;;valida si no es nulo, si lo es se va a 
+		cmp AL, 00
+		je escribir_precio
+		;;valida que la cadena se encuentra llena 
+		cmp SI, 0021
+		je escribir_precio
+		;
+		;;write to file with handle ---> esceribir 
+		mov CX, 0001
+		mov BX, [handle_reps]
+		mov AH, 40
+		int 21
+		;
+		inc DX  ;; <-- para que se vaya la siguiente byte 
+		inc SI  ;; <-- si se escribe algo en el arcribo, aumenta el contador 
+		jmp ciclo_escribir_descripcion
+
+	escribir_precio:
+		; etiqueta cierre td
+		colocar_etiqueta_html handle_reps, tam_cierre_td, cierre_td
+		; eetiqueta td
+		colocar_etiqueta_html handle_reps, tam_apertura_td, apertura_td
+		; dx toma el valor de precio
+		mov AX, [num_precio]
+		call numAcadena
+		;
+		mov DX, offset numero
+		mov SI, 0000
+	
+	ciclo_escribir_precio: 
+		mov DI, DX
+		mov AL, [DI]
+		;;valida si no es nulo, si lo es se va a 
+		cmp AL, 00
+		je escribir_unidades
+		;;valida que la cadena se encuentra llena 
+		cmp SI, 0006
+		je escribir_unidades
+		;
+		;;write to file with handle ---> esceribir 
+		mov CX, 0001
+		mov BX, [handle_reps]
+		mov AH, 40
+		int 21
+		;
+		inc DX  ;; <-- para que se vaya la siguiente byte 
+		inc SI  ;; <-- si se escribe algo en el arcribo, aumenta el contador 
+		jmp ciclo_escribir_precio
+
+	escribir_unidades:
+		; etiqueta cierre td
+		colocar_etiqueta_html handle_reps, tam_cierre_td, cierre_td
+		; eitqueta td
+		colocar_etiqueta_html handle_reps, tam_apertura_td, apertura_td
+		; dx toma el valor de unidades
+		mov AX, [num_unidades]
+		call numAcadena
+		mov DX, offset numero
+		mov SI, 0000
+
+	ciclo_escribir_unidades:
+		mov DI, DX
+		mov AL, [DI]
+		;;valida si no es nulo, si lo es se va a 
+		cmp AL, 00
+		je cerrar_table
+		;;valida que la cadena se encuentra llena 
+		cmp SI, 0006
+		je cerrar_table
+		;
+		;;write to file with handle ---> esceribir 
+		mov CX, 0001
+		mov BX, [handle_reps]
+		mov AH, 40
+		int 21
+		;
+		inc DX  ;; <-- para que se vaya la siguiente byte 
+		inc SI  ;; <-- si se escribe algo en el arcribo, aumenta el contador 
+		jmp ciclo_escribir_unidades
+
+	cerrar_table:
+		; etiqueta cierre td
+		colocar_etiqueta_html handle_reps, tam_cierre_td, cierre_td
+		; etiqueta cierre tr
+		colocar_etiqueta_html handle_reps, tam_cierre_tr, cierre_tr
+		; llamada de sub-rutina para hora 
+		; call retornar_fecha_hora
+		ret
 
 ; ----------------------------------------------------------------------------------------------
                                             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
