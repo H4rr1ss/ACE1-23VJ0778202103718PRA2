@@ -42,7 +42,7 @@ llave_fin                   db  "fin", "$"
 ;
 ;           						MENU        ------>
 ; SECCION GENERAL PRODUCTOS
-productos                   db  "(P)roductoss",0a,"$"
+productos                   db  "(P)roductos",0a,"$"
     mostrar_produ           db  "(M)ostrar productos",0a,"$"
         prompt_continuar    db  "Presione tecla ENTER para continuar o letra Q para salir...",0a,"$"
     ingresar_produ          db  "(I)ngresar producto",0a,"$"
@@ -51,6 +51,9 @@ productos                   db  "(P)roductoss",0a,"$"
         prompt_precio       db  "Precio: ", "$"
         prompt_unidades     db  "Unidades: ", "$"
     borrar_produ            db  "(B)orrar producto",0a,"$"
+	producto_existe		    db  "El producto ya existe.", 0a, "$"
+	no_encontrado    db  "El producto a borrar no existe.", 0a, "$"
+	producto_eliminado		db "El producto fue eliminado.", 0a, "$"
 ;
 ; SECCION GENERAL VENTAS
 ventas                      db  "(V)entas",0a,"$"
@@ -58,8 +61,9 @@ ventas                      db  "(V)entas",0a,"$"
 		;;; PROMPT VENTAS
 		prompt_venta_codi   db  "Codigo de producto: ", "$"
 		prompt_venta_unid   db  "Unidades que desea: ", "$"
-		venta_continuar     db  "(D)esea continuar", 0a, "$"
+		venta_aceptar     db  "(A)ceptar venta", 0a, "$"
 		venta_cancelar      db  "(C)ancelar venta", 0a, "$"
+		prompt_no_hay_disponibilidad db "No hay disponibilidad de unidades para concretar la venta.", 0a, "$"
     ; PROMPT CANTIDADES
     prompt_cantidad         db  "Cantidad: ","$"
     prompt_monto            db  "Monto: ","$"
@@ -133,10 +137,11 @@ ceros          				db  2b  dup (0)
 cod_prod_temp               db  05 dup (0)
 puntero_temp                dw  0000
 cl_temp                     db  00
+prod_temp 				 	db 2a dup (0)
 ;
 ; TEXTO FINALIZAR EJECUCIÓN
 fin_ejecucion_programa      db  "    Credenciales incorrectas.", "$"
-credenciales_true           db  "    CREDECIALES CORRECTAS, presione enter", 0a, "$"
+credenciales_true           db  "    CREDENCIALES CORRECTAS, presione enter", 0a, "$"
 ;
 ;										<---------- REPORTES ---------->
 ;	GENERACIÓN DE CATÁLOGO
@@ -293,6 +298,9 @@ ingresar_producto_archivo:
     mPrint nueva_lin
     ; PEDIR CODIGO
     pedir_de_nuevo_codigo:
+        mov DI, offset cod_prod
+		mov CX, 5
+		call memset
         mPrint prompt_codigo
         getData buffer_entrada
         ;
@@ -336,10 +344,60 @@ ingresar_producto_archivo:
         inc di
         loop copiar_codigo  ; RESTARLE 1 A CX, VERIFICAR QUE CX NO SEA 0, SI NO ES 0 VA A LA ETIQUETA
 		mPrint nueva_lin
-    ; LA CADENA YA FUE INGRESADA EN LA ESTRUCTURA
-
+    ; LA CADENA YA FUE INGRESADA EN LA ESTRUCTURA	
+	mov AL, 00              ;;;<<<<<  lectura
+	mov DX, offset arch_productos
+	mov AH, 3d
+	int 21
+	mov [handle_productos], AX
+	; VERIFICAR SI EL PRODUCTO YA EXISTE
+	buscar_producto:
+		mov DI, offset prod_temp
+		mov CX, 2a
+		call memset
+		mov bx, [handle_productos]
+		mov cx, 2a
+		mov dx, offset prod_temp
+		moV AH, 3f
+		int 21		
+		cmp AX, 0000   ;; no encontró si el archivo se termina
+		je finalizar_buscar_producto		
+		;;; Si está vacío o fragmentado
+		mov AL, 00
+		cmp [prod_temp], AL
+		je buscar_producto
+		;;; verificar el código
+		mov SI, offset prod_temp
+		mov DI, offset cod_prod
+		mov CX, 0005
+		call cadenas_iguales
+		;;;; <<
+		cmp DL, 0ff
+		je producto_encontrado
+		jmp buscar_producto
+	producto_encontrado:
+		mov dl, 0ff
+	finalizar_buscar_producto:
+		mov bx, [handle_productos]
+		mov ah, 3e ; cerrar archivo
+		int 21
+	cmp DL, 0ff
+	; si ya existe el producto
+	je producto_ya_existe
+	jmp pedir_de_nuevo_descri
+	producto_ya_existe:
+	; imprimir que ya existe
+		mPrint separador_comun
+		mPrint producto_existe
+		mPrint nueva_lin
+		mPrint nueva_lin		
+		jmp menu_productos
     ; PEDIR DESCRIPCION
     pedir_de_nuevo_descri:
+        ;; limpiar todos los campos
+		mov DI, offset cod_desc
+		mov CX, 21
+		call memset
         mPrint prompt_descri
         getData buffer_entrada
         mPrint nueva_lin
@@ -386,7 +444,6 @@ ingresar_producto_archivo:
         inc si
         inc di
         loop copiar_descripcion  ; RESTARLE 1 A CX, VERIFICAR QUE CX NO SEA 0, SI NO ES 0 VA A LA ETIQUETA
-		mPrint nueva_lin
     ; LA CADENA YA FUE INGRESADA EN LA ESTRUCTURA
 
     ; PEDIR PRECIO
@@ -499,13 +556,44 @@ ingresar_producto_archivo:
 		mov [handle_productos], AX
 		; OBTENER HANDLE
 		mov BX, [handle_productos]
-		; VAMOS AL FINAL DEL ARCHIVO
-		mov CX, 00
-		mov DX, 00
-		mov AL, 02
-		mov AH, 42
-		int 21
-        ; ESCRIBIR EL PRODUCTO EN EL ARCHIVO
+        mov DX, 0000
+		mov [puntero_temp], DX
+    
+        ciclo_encontrar_productoVacio:
+            int 03
+            mov bx, [handle_productos]
+            mov cx, 2a
+            mov dx, offset prod_temp
+            moV AH, 3f
+            int 21
+            cmp AX, 0000   ;; se acaba cuando el archivo se termina
+            je avanzar_punteroAlFinal
+            mov DX, [puntero_temp]
+            add DX, 2a
+            mov [puntero_temp], DX
+            ;;; verificar si es producto no válido
+            mov AL, 00
+            cmp [prod_temp], AL
+            je avanzar_puntero
+            jmp ciclo_encontrar_productoVacio
+        avanzar_puntero:
+            mov DX, [puntero_temp]
+            sub DX, 2a
+            mov CX, 0000
+            mov BX, [handle_productos]
+            mov AL, 00
+            mov AH, 42
+            int 21
+            jmp escribir_producto
+            ;;; puntero posicionado
+        avanzar_punteroAlFinal:
+            mov DX, [puntero_temp]
+            mov CX, 0000
+            mov BX, [handle_productos]
+            mov AL, 00
+            mov AH, 42
+            int 21            
+    escribir_producto: ; ESCRIBIR EL PRODUCTO EN EL ARCHIVO
 		mov CX, 26
 		mov DX, offset cod_prod
 		mov AH, 40
@@ -515,9 +603,9 @@ ingresar_producto_archivo:
 		mov DX, offset num_precio
 		mov AH, 40
 		int 21
-		;; limpiar los primeros dos
+		;; limpiar todos los campos
 		mov DI, offset cod_prod
-		mov CX, 26
+		mov CX, 2a
 		call memset
 		; CERRAR EL ARCHIVO
 		mov ah, 3e
@@ -629,7 +717,7 @@ ingresar_producto_archivo:
 		moV AH, 3f
 		int 21
 		cmp AX, 0000   ;; se acaba cuando el archivo se termina
-		je finalizar_borrar
+		je no_encontro
 		mov DX, [puntero_temp]
 		add DX, 2a
 		mov [puntero_temp], DX
@@ -659,6 +747,16 @@ ingresar_producto_archivo:
 		mov DX, offset ceros
 		mov AH, 40
 		int 21
+		mPrint separador_comun
+		mPrint producto_eliminado
+		mPrint nueva_lin
+		mPrint nueva_lin
+		jmp finalizar_borrar
+	no_encontro:
+		mPrint separador_comun
+		mPrint no_encontrado
+		mPrint nueva_lin
+		mPrint nueva_lin
 	finalizar_borrar:
 		mov BX, [handle_productos]
 		mov AH, 3e
@@ -938,7 +1036,7 @@ menu_ventas:
 			je  pedir_de_nuevo_cantidades
             ;
 			; Si es menor a 5 pasar a verificar
-			cmp AL, 06  ;; tamaño máximo del campo
+			cmp AL, 03  ;; tamaño máximo del campo
 			jb  aceptar_tam_cantidades ;; jb --> jump if below
             ;
 			mPrint nueva_lin
@@ -974,7 +1072,23 @@ menu_ventas:
 			mov DI, offset cantidad_ventas
 			mov CX, 0005
 			call memset
+		verificar_disponibilidad:
+			; verificación se basa en | num_cantidad = unidades a comprar | num_unidadesVenta = unidades disponibles
+			mov AX, [num_unidadesVenta] 
+			cmp AX, 0000
+			je  no_hay_disponibilidad
 
+			mov DX, [num_cantidad]
+			cmp DX, 0000 ; SI QUIERE COMPRAR 0 UNIDADES
+			je agregar_item
+			cmp DX, AX
+			ja  no_hay_disponibilidad ; si es mayor a la cantidad disponible	
+			jmp calcular_monto		
+		no_hay_disponibilidad:
+			mPrint nueva_lin
+			mPrint prompt_no_hay_disponibilidad
+			jmp agregar_item	
+		calcular_monto:
         ;; CALCULAR MONTO
 			; IMPRIMIR MONTO
 			mPrint nueva_lin
@@ -1010,9 +1124,22 @@ menu_ventas:
 			int 21
             ;
 			mPrint nueva_lin
-			; Escribir en el archivo
-			jmp escribir_nuevo_item	
-
+        preguntar_paraConfirmar:
+            mPrint nueva_lin
+			mPrint nueva_lin
+            ; Presionar A para confirmar
+            mPrint venta_aceptar
+            mPrint venta_cancelar            
+            mov ah, 00
+            int 16  ; ALMACENA LA TECLA PRESIONADA EN AL
+            mPrint nueva_lin
+            mPrint nueva_lin
+            cmp al, 61 ; tecla a minuscula
+            je escribir_nuevo_item
+            cmp al, 63 ; tecla c minuscula
+            je agregar_item
+            jmp preguntar_paraConfirmar
+        ; Escribir en el archivo
         ;; ESCRIBIR NUEVO ITEM EN EL ARCHIVO
 		escribir_nuevo_item:
 			; 1. Escribir el codigo del producto
@@ -1430,7 +1557,7 @@ cadenaAnum:
 ;;CX = AX  <<<<<<<<<<<
 ;;[31][30][30][30][30]
 ;;                  ^
-numAcadena:
+numAcadena:		
 		mov CX, 0005
 		mov DI, offset numero
     ciclo_poner30s:
@@ -1689,6 +1816,15 @@ tecla_enter:
     cmp AL, 0dh
     jne tecla_enter
     ret
+
+
+
+
+restarUnidadesAlProducto: 
+;; ENTRADAS:  byte_temp = unidades a restar
+;; 			  cod_prod = codigo del producto
+
+
 
 fin:
 .exit
