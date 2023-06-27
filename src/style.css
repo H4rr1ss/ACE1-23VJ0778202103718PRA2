@@ -1,0 +1,26 @@
+body{
+    background-color: #171717;
+    text-align: center;
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+h1{
+    color:white;
+    margin-bottom: 5%;
+}
+
+table{
+    border: 2px solid white;
+}
+
+th{
+    background-color: #540A26;
+    color: white;
+}
+
+tr{
+    color: white;
+    background-color: #2D2C2C;
+}

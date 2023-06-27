@@ -167,9 +167,11 @@ tam_cierre_body			db	7  ;; 7
 tam_cierre_html			db	7  ;; 7
 tam_titulos_alfa_html	db  27 ;;39
 tam_body_Rep_alfa_html  db  2e ;; 46
+tam_tit_css				db	3e ;; 62
 ;
 encabezado_html        	db	"<!DOCTYPE html><html><head>" 
 tit_Catalogo_html 		db	"<title>Reporte</title>"	
+tit_css					db	"<link rel = 'stylesheet' type = 'text/css' href = 'style.css'>"
 style_Table_html		db	"<style>table { width: 100%; border-collapse: collapse; }" 
 style_Th_html			db  "th, td {border: 1px solid black; padding: 8px; text-align: left;}"
 cierre_style           	db  "</style>"
@@ -1239,6 +1241,8 @@ menu_herramientas:
 		;
 		; etiqueta title
 		colocar_etiqueta_html handle_reps, tam_tit_Catalogo_html, tit_Catalogo_html
+		; etiqueta css
+		colocar_etiqueta_html handle_reps, tam_tit_css, tit_css
 		; etiqueta style
 		colocar_etiqueta_html handle_reps, tam_style_Table_html, style_Table_html
 		; etiqueta th
