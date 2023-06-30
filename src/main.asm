@@ -28,6 +28,9 @@ nombreConfig            db     "PRA2.CNF", 00
 ;; CREDECIALES
 usuario                     db  "hgomez", "$"
 clave                       db  "202103718", "$"
+credenciales_true	db	"Credenciales correctas! ", 0a, "$"
+credenciales_false	db	"Credenciales incorrectas!", 0a, "$"
+aceptar_enter		db	"Presione ENTER para continuar", 0a, "$"
 
 ; PARA EL USO DE DISTINTAS FUNCIONES
 ;; BUFFER
@@ -345,10 +348,12 @@ inicio:
 		mov cx, 09
 		call cadenas_iguales
 		cmp dl, 0ff
-
+		mov DX, offset aceptar_enter
+		mov AH, 09
+		int 21
 		call tecla_enter
 
-		je menu_principal
+		je credenciales_aceptadas
 		; SI ES INCORRECTO IMPRIME MENSAJE Y FINALIZA EL PROGRAMA
 		mov DX, offset txtMonto
 	mov AH, 09
@@ -356,7 +361,16 @@ inicio:
 		jmp credenciales_incorrectas_fin
 
 	credenciales_incorrectas_fin:
+		mov DX, offset credenciales_false
+		mov AH, 09
+		int 21
 		jmp fin
+
+credenciales_aceptadas:
+	mov DX, offset credenciales_true
+	mov AH, 09
+	int 21
+	jmp menu_principal
 
 ;; MENU PRINCIPAL		
 menu_principal:
@@ -645,10 +659,6 @@ menu_principal:
 				;;
 			;; IMPRIMIR EL CÓDIGO		
 			copiar_codigo:
-				;; SEPARACION
-				mov DX, offset nuevaLinea
-				mov AH, 09
-				int 21	
 				mov AL, [DI]
 				; VERIFICAR QUE CUMPLA CON LA REGEX [A-Z0-9] en hexadecimal 30-39 y 41-5A
 				cmp al, 5ah
@@ -666,10 +676,6 @@ menu_principal:
 				loop copiar_codigo  ;; restarle 1 a CX, verificar que CX no sea 0, si no es 0 va a la etiqueta, 
 									;; la cadena ingresada en la estructura
 				;; SEPARACION
-				mov DX, offset nuevaLinea
-				mov AH, 09
-				int 21
-				;;
 
 
     ; LA CADENA YA FUE INGRESADA EN LA ESTRUCTURA	
@@ -1921,6 +1927,14 @@ menu_principal:
 			mov DX, offset tit_Catalogo_html
 			int 21
 			
+			;; <title>Catalogo</title>"
+			mov BX, [handleCatalogo]
+			mov AH, 40
+			mov CH, 00
+			mov CL, [tam_tit_css]
+			mov DX, offset tit_css
+			int 21
+			
 			;;"</head>"
 			mov BX, [handleCatalogo]
 			mov AH, 40
@@ -2411,6 +2425,14 @@ menu_principal:
 			mov CH, 00
 			mov CL, [tam_tit_Catalogo_html]
 			mov DX, offset tit_Catalogo_html
+			int 21
+
+			;; <title>Catalogo</title>"
+			mov BX, [handleAlfabetico]
+			mov AH, 40
+			mov CH, 00
+			mov CL, [tam_tit_css]
+			mov DX, offset tit_css
 			int 21
 
 			;style
