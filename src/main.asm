@@ -10,115 +10,114 @@
 ; INICIALIZACION DEL PROGRAMA
 ;; TOKENS
 tkCredenciales               db     0e, "[credenciales]"
-tkNombre              db     07, "usuario"
-tkClave               db     05, "clave"
-tkIgual             db     01, "="
-tkComillas           db     01, '"'
+tkNombre              		 db     07, "usuario"
+tkClave               		 db     05, "clave"
+tkIgual             		 db     01, "="
 ;; CONFIGURACION INICIAL
-claveCapturada        db     09  dup (0)
-usuarioCapturado      db     0a  dup (0)
+claveCapturada        		 db     09  dup (0)
+usuarioCapturado      		 db     0a  dup (0)
 ;
-espacioLeido          db     00
-estado                 db     00
-bufferLinea           db     0ff dup (0)
-tamLineaLeida       db     00
+espacioLeido          		 db     00
+estado                  	 db     00
+bufferLinea           		 db     0ff dup (0)
+tamLineaLeida       		 db     00
 ;
-handleConfig           dw     0000
-nombreConfig            db     "PRA2.CNF", 00
+handleConfig           		 dw     0000
+nombreConfig            	 db     "PRA2.CNF", 00
 ;; CREDECIALES
-usuario                     db  "hgomez", "$"
-clave                       db  "202103718", "$"
-credenciales_true	db	"Credenciales correctas! ", 0a, "$"
-credenciales_false	db	"Credenciales incorrectas!", 0a, "$"
-aceptar_enter		db	"Presione ENTER para continuar", 0a, "$"
+usuario                      db  "hgomez", "$"
+clave                        db  "202103718", "$"
+credenciales_true			 db	"Credenciales correctas! ", 0a, "$"
+credenciales_false			 db	"Credenciales incorrectas!", 0a, "$"
+aceptar_enter				 db	"Presione ENTER para continuar", 0a, "$"
 
 ; PARA EL USO DE DISTINTAS FUNCIONES
 ;; BUFFER
-bufferEntrada   db  20, 00
-                 db  20 dup (0)
+bufferEntrada   			 db  20, 00
+                 			 db  20 dup (0)
 ;; LIMPIAR BUFFER
-ceros          db     2b  dup (0)
+ceros          				 db     2b  dup (0)
 ;; NUMERO PARA CONVERTIR A CADENA
-numero           db   05 dup (30)
+numero           			 db   05 dup (30)
 ;; LLAVE FIN 
-cadenaFin db "fin","$"
+cadenaFin 					 db "fin","$"
 
 ; IMPRESIONES
 ;; PARA USO GENERAL
 ;;; NUEVA LINEA
-nuevaLinea  db    0a,"$"
+nuevaLinea  				 db    0a,"$"
 ;;; PROMPT
-prompt     db    "Elija una opcion:",0a,"$"
-separadorPrompt db    "=================",0a,"$"
+prompt     					 db    "Elija una opcion:",0a,"$"
+separadorPrompt 			 db    "=================",0a,"$"
 ;;; OPCIÓN REGRESAR
-regresar     db    "(R)egresar",0a,"$"
+regresar     				 db    "(R)egresar",0a,"$"
 
 ;; ENCABEZADO
-MensajeInicial              db  " Universidad de San Carlos de Guatemala", 0dh, 0ah," Facultad de Ingenieria", 0dh, 0ah," Escuela de Vacaciones ", 0dh, 0ah," Arquitectura de Compiladores y ensabladores 1", 0dh, 0ah," Seccion N", 0a, 0dh, 0ah," Harry Aaron Gomez Sanic", 0dh, 0ah," 202103718", 0a, "$"
+MensajeInicial               db  " Universidad de San Carlos de Guatemala", 0dh, 0ah," Facultad de Ingenieria", 0dh, 0ah," Escuela de Vacaciones ", 0dh, 0ah," Arquitectura de Compiladores y ensabladores 1", 0dh, 0ah," Seccion N", 0a, 0dh, 0ah," Harry Aaron Gomez Sanic", 0dh, 0ah," 202103718", 0a, "$"
 ;; MENU PRINCIPAL
-tituloMenu db   "MENU PRINCIPAL",0a,"$"
-separadorMenu     db  "==============",0a,"$"
-productos  db    "(P)roductos",0a,"$"
-ventas     db    "(V)entas",0a,"$"
-herramientas db  "(H)erramientas",0a,"$"
-salir     db     "(S)alir",0a,"$"
+tituloMenu 					 db   "MENU PRINCIPAL",0a,"$"
+separadorMenu     			 db  "==============",0a,"$"
+productos  				 	 db    "(P)roductos",0a,"$"
+ventas     					 db    "(V)entas",0a,"$"
+herramientas 				 db  "(H)erramientas",0a,"$"
+salir     					 db     "(S)alir",0a,"$"
 
 ;; MENU PRODUCTOS
-tituloProducto db  "PRODUCTOS",0a,"$"
-separadorProducto        db  "=========",0a,"$"
-opcionProductoMostrar     db  "(M)ostrar productos",0a,"$"
-opcionProductoIngresar    db  "(I)ngresar producto",0a,"$"
-opcionProductoBorrar      db  "(B)orrar producto",0a,"$"
-productono_encontrado    db  "El producto a borrar no existe.", 0a, "$"
-producto_eliminado		db "El producto fue eliminado.", 0a, "$"
-producto_existe		db "Ya existe un producto con ese Codigo.", 0a, "$"
+tituloProducto 				 db  "PRODUCTOS",0a,"$"
+separadorProducto        	 db  "=========",0a,"$"
+opcionProductoMostrar    	 db  "(M)ostrar productos",0a,"$"
+opcionProductoIngresar   	 db  "(I)ngresar producto",0a,"$"
+opcionProductoBorrar     	 db  "(B)orrar producto",0a,"$"
+productono_encontrado    	 db  "El producto a borrar no existe.", 0a, "$"
+producto_eliminado			 db "El producto fue eliminado.", 0a, "$"
+producto_existe				 db "Ya existe un producto con ese Codigo.", 0a, "$"
 
 ;;; PROMPT PRODUCTOS
-promptCodigo      db    "Codigo: ","$"
-promptNombre      db    "Nombre: ","$"
-promptPrecio     db    "Precio: ","$"
-promptUnidades     db    "Unidades: ","$"
+promptCodigo        		 db    "Codigo: ","$"
+promptNombre        		 db    "Nombre: ","$"
+promptPrecio        		 db    "Precio: ","$"
+promptUnidades      		 db    "Unidades: ","$"
 ;; SUB MENU MOSTRAR PRODUCTOS
-tituloProductoMostrar db  "MOSTRAR PRODUCTOS",0a,"$"
-preguntaEnter db "Presione ENTER para continuar, q para Salir.",0a,"$"
-separadorProductoMostrar        db  "=================",0a,"$"
+tituloProductoMostrar 		 db  "MOSTRAR PRODUCTOS",0a,"$"
+preguntaEnter 				 db "Presione ENTER para continuar, q para Salir.",0a,"$"
+separadorProductoMostrar     db  "=================",0a,"$"
 ;; SUB MENU INGRESAR PRODUCTOS
-tituloProductoIngresar db  "INGRESAR PRODUCTO",0a,"$"
-separadorProductoIngresar        db  "=================",0a,"$"
+tituloProductoIngresar 		 db  "INGRESAR PRODUCTO",0a,"$"
+separadorProductoIngresar    db  "=================",0a,"$"
 ;; SUB MENU BORRAR PRODUCTOS
-tituloProductoBorrar db  "BORRAR PRODUCTO",0a,"$"
-separadorProductoBorrar        db  "===============",0a,"$"
+tituloProductoBorrar 		 db  "BORRAR PRODUCTO",0a,"$"
+separadorProductoBorrar      db  "===============",0a,"$"
 ;; MENSAJES
-noEncontrado db "PRODUCTO NO ENCONTRADO",0a,"$"
+noEncontrado 				 db "PRODUCTO NO ENCONTRADO",0a,"$"
 
 ;; MENU VENTAS
-tituloVentas   db  "VENTAS",0a,"$"
-separadorVentas      db  "======",0a,"$"
-opcionVentasIngresar     db  "(I)ngresar venta",0a,"$"
+tituloVentas   				 db  "VENTAS",0a,"$"
+separadorVentas       		 db  "======",0a,"$"
+opcionVentasIngresar     	 db  "(I)ngresar venta",0a,"$"
 ;;; PROMPT VENTAS
-promptCantidad    db       "Cantidad: ","$"
-promptMonto    db          "Monto: ","$"
-promptMontoTotal    db    "Monto total: ","$"
+promptCantidad     			 db       "Cantidad: ","$"
+promptMonto    				 db          "Monto: ","$"
+promptMontoTotal    		 db    "Monto total: ","$"
 ;; SUB MENU INGRESAR VENTAS
-tituloVentasIngresar db  "INGRESAR VENTA",0a,"$"
-separadorVentasIngresar     db  "==============",0a,"$"
+tituloVentasIngresar 	 	 db  "INGRESAR VENTA",0a,"$"
+separadorVentasIngresar      db  "==============",0a,"$"
 ;; MENSAJES
-sinExistencias db "PRODUCTO SIN EXISTENCIAS",0a,"$"
+sinExistencias 				 db "PRODUCTO SIN EXISTENCIAS",0a,"$"
 separadorSinExistencias      db "========================",0a,"$"
 
 
 ;; MENU HERRAMIENTAS
-tituloHerramientas   db  "HERRAMIENTAS",0a,"$"
+tituloHerramientas   		 db  "HERRAMIENTAS",0a,"$"
 separadorHerramientas        db  "============",0a,"$"
-catalogoCompleto     db     "(C)atalogo completo",0a,"$"
-alfabeticoProductos    db   "(A)lfabetico de productos",0a,"$"
-reporteVentas     db        "(V)entas",0a,"$"
-productosSinExistencias db  "(P)roductos sin existencias",0a,"$"
+catalogoCompleto     		 db     "(C)atalogo completo",0a,"$"
+alfabeticoProductos    		 db   "(A)lfabetico de productos",0a,"$"
+reporteVentas     			 db        "(V)entas",0a,"$"
+productosSinExistencias 	 db  "(P)roductos sin existencias",0a,"$"
 ;; SUB MENU CATALOGO COMPLETO
-tituloCatalogoCompleto db  "CATALOGO COMPLETO",0a,"$"
-separadorHerramientasCatalogo        db  "=================",0a,"$"
+tituloCatalogoCompleto 		 db  "CATALOGO COMPLETO",0a,"$"
+separadorHerramientasCatalogo db  "=================",0a,"$"
 ;; SUB MENU ALFABETICO DE PRODUCTOS
-tituloAlfabeticoProductos db  "ALFABETICO DE PRODUCTOS",0a,"$"
+tituloAlfabeticoProductos 	 db  "ALFABETICO DE PRODUCTOS",0a,"$"
 separadorHerramientasAlfabetico        db   "=======================",0a,"$"
 ;; SUB MENU REPORTE DE VENTAS
 tituloReporteVentas db  "REPORTE DE VENTAS",0a,"$"

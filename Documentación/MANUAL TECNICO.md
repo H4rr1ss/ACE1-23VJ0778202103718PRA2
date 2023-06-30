@@ -98,7 +98,7 @@ endm
 
 ### Escribir Producto en Archivo
 
-~~~
+~~~asm
 escribir_producto: ; ESCRIBIR EL PRODUCTO EN EL ARCHIVO
 		mov CX, 26
 		mov DX, offset cod_prod
@@ -121,7 +121,8 @@ escribir_producto: ; ESCRIBIR EL PRODUCTO EN EL ARCHIVO
 ~~~
 
 ### Sobreescribir Producto en Archivo
-~~~
+
+~~~asm
 ; GUARDAMOS HANDLE
 mov [handle_productos], AX
 ; OBTENER HANDLE
@@ -161,7 +162,7 @@ avanzar_puntero:
 
 ### Buscar Producto
 
-~~~
+~~~asm
 buscar_producto:
     mov DI, offset prod_temp
     mov CX, 2a
@@ -199,7 +200,7 @@ je producto_ya_existe
 
 ### Eliminar Producto
 
-~~~
+~~~asm
 borrar_encontrado:
     mov DX, [puntero_temp]
     sub DX, 2a
@@ -222,7 +223,7 @@ borrar_encontrado:
 
 ### Modificar Producto
 
-~~~
+~~~asm
 modificar_producto:
     mov al, 02
     mov dx, offset arch_productos
@@ -328,8 +329,10 @@ modificar_producto:
         ; Escribir en el archivo
         jmp escribir_nuevo_item
 ~~~
+
 ### Agregar Item a Compra
-~~~
+
+~~~asm
 restar_existencias_producto:
     ; Posicionar puntero para el offset de la interrupcion
     mov dx, [puntero_temp]
@@ -395,7 +398,7 @@ restar_existencias_producto:
 
 ### Verificar Existencias
 
-~~~
+~~~asm
 ciclo_encontrar_producto_ventas:
     ; Puntero en el código del producto
     mov BX, [handle_productos]
@@ -446,7 +449,7 @@ verificar_stock:
 ~~~
 
 ### Agregar Item a Compra
-~~~
+~~~asm
 restar_existencias_producto:
     ; Posicionar puntero para el offset de la interrupcion
     mov dx, [puntero_temp]
@@ -512,7 +515,7 @@ restar_existencias_producto:
 
 ### Verificar Existencias
 
-~~~
+~~~asm
 ciclo_encontrar_producto_ventas:
     ; Puntero en el código del producto
     mov BX, [handle_productos]
